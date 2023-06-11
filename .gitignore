@@ -58,3 +58,13 @@
 /trainHistory
 /TrainModel.py
 /TryFaceDetector.py
+/ParallelProgrammed/AgeModelJson.json
+/ParallelProgrammed/AgeModelWeights.h5
+/ParallelProgrammed/fer70.h5
+/ParallelProgrammed/fer70.json
+/fer70.json
+/fer70.h5
+/EmotionDetectServer.py
+/EmotionDetectClient.py
+/AgeModelWeights.h5
+/AgeModelJson.json
