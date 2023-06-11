@@ -1,6 +1,6 @@
 import copy
 import cv2 as cv
-import FaceRecognition as fr
+import ParallelProgrammed.FaceRecognition as fr
 import numpy as np
 import time
 
