@@ -27,7 +27,7 @@ def start_camera():
     return cv.VideoCapture(0), NewGui2.BetterUI()
 
 
-def send_data(data, face_id, client_emotions):
+def send_data(face_id, client_emotions, data):
     # sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     # sock.connect((HOST, PORT))
     # print("Connected successfully to: {} on the port {}".format(HOST, PORT))
@@ -117,7 +117,7 @@ def camera_capture(button_pressed, client_id, camera_ready):
             #face_name=pickle.dumps(client_id.value.decode())
             #client_emotions=pickle.dumps(client_profile)
             #send_data(data, face_name, client_emotions)
-            send_data(face_data, client_id.value.decode(), client_profile)
+            send_data(client_id.value.decode(), client_profile, face_data)
 
             client_profile = [0, 0, 0, 0]
 

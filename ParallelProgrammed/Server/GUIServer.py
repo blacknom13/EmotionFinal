@@ -75,7 +75,7 @@ def camera_capture(clients):
                                                                           emotion_model=emotion_model,
                                                                           func=func,
                                                                           emotion_array=emotion_array,
-                                                                          emotion_colors=emotion_color_rgb)
+                                                                          emotion_colors=emotion_color_rgb,)
 
 
 if __name__ == "__main__":
@@ -99,6 +99,7 @@ if __name__ == "__main__":
         conn=sock.accept()
         data=conn.recv()
         print(data)
+        clients_faces.append()
         # conn, addr = sock.accept()
         # print("Connected by", addr)
         #
