@@ -119,9 +119,9 @@ def detect_emotions(preparation_timer, ui, local_timer, local_client_profile, em
                 max(0, intx - 150): max(0, intx + intWidth)] = sub_frame
                 frame[inty:inty + intHeight, intx:intx + intWidth] = temp_face
 
-            cv.putText(frame, emotion_dict_fullname[np.argmax(local_client_profile)],
-                       (intx + int(intWidth / 2) - 50, label_position[1] + 10), cv.FONT_HERSHEY_COMPLEX_SMALL, 1,
-                       emotion_color[np.argmax(local_client_profile)], 1)
+            # cv.putText(frame, emotion_dict_fullname[np.argmax(local_client_profile)],
+            #            (intx + int(intWidth / 2) - 50, label_position[1] + 10), cv.FONT_HERSHEY_COMPLEX_SMALL, 1,
+            #            emotion_color[np.argmax(local_client_profile)], 1)
 
             cv.putText(frame, recognized_client,
                        (intx - 120, inty + intHeight // 4), cv.FONT_HERSHEY_COMPLEX_SMALL, 4,

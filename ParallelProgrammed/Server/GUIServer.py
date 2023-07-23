@@ -56,13 +56,13 @@ def camera_capture(clients):
     # Loading Emotion Detection Model
     # load json and create model
     print("Loading Emotion Detection Model")
-    json_file = open('../Server/fer70.json', 'r')
+    json_file = open('../fer70.json', 'r')
     loaded_model_json = json_file.read()
     json_file.close()
     emotion_model = model_from_json(loaded_model_json)
 
     # load weights into new model
-    emotion_model.load_weights('fer70.h5')
+    emotion_model.load_weights('../fer70.h5')
     print("Emotion Detection Model Loaded")
     ###########
 
