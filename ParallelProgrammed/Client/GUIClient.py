@@ -61,7 +61,7 @@ def camera_capture(button_pressed, client_id, camera_ready):
 
     # Initializing face detector
     face_detector = mp.solutions.face_detection
-    face_detection = face_detector.FaceDetection(.75)
+    face_detection = face_detector.FaceDetection(.95)
 
     # Loading Emotion Detection Model
     # load json and create model

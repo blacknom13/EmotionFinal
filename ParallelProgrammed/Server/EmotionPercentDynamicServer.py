@@ -1,13 +1,22 @@
 import copy
-import NewGui2
+import GUIServer
 import matplotlib.pyplot as plt
 from ParallelProgrammed import FaceRecognition
 import cv2 as cv
 import numpy as np
 import time
 
-clients_emotion_array=[]
-client_ids=[]
+face_detection = None
+capture = None
+emotion_color = None
+emotion_model = None
+emotion_dict = None
+emotion_dict_fullname = None
+func = None
+name = None
+emotion_array = None
+emotion_colors = None
+
 
 def draw_rect_frame(frame, x, y, width, height, thickness, length, color):
     cv.line(frame, (x, y), (x + length, y), color, thickness)
@@ -23,18 +32,14 @@ def draw_rect_frame(frame, x, y, width, height, thickness, length, color):
     cv.line(frame, (x, y), (x, y + length), color, thickness)
 
 
-def detect_emotions(ui, local_timer, emotion_dict, emotion_dict_fullname,
-                    emotion_color, capture, face_detection, emotion_model, func,
-                    name=None, emotion_array=None, emotion_colors=None):
-
-    global clients_emotion_array
+def detect_emotions(ui, local_timer, client_ids, face_data, starting_emotions):
     current = time.time_ns()
+    once=False
     direct_to = ""
     real_time = 0
     fps = 0
     FPS = 0
     local_total_frames = 0
-    recognized_client = ""
     ui.configure_figure(emotion_array, emotion_colors)
 
     while True:
@@ -43,13 +48,19 @@ def detect_emotions(ui, local_timer, emotion_dict, emotion_dict_fullname,
         if not ret:
             break
 
+        recognized_client = ""
+        clients_emotion_array = starting_emotions[:]
         img = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
         faces = face_detection.process(img)
-
+        # if faces.detections is None:
+        #     print(0)
+        # else:
+        #     print(len(faces.detections))
         if faces.detections and len(clients_emotion_array) != 0:
             intx, inty, intWidth, intHeight = 0, 0, 0, 0
             for id, detection in enumerate(faces.detections):
                 print(id)
+                print("I don't go here")
                 temp = detection.location_data.relative_bounding_box
 
                 intx = max(0, int(len(frame[0]) * temp.xmin))
@@ -66,10 +77,9 @@ def detect_emotions(ui, local_timer, emotion_dict, emotion_dict_fullname,
 
                 if name == None:
                     print(FaceRecognition.faces_names)
-
                     recognized_client = FaceRecognition.recognize_face(roi_resized)
-                else:
-                    name = FaceRecognition.store_current_face(roi_resized, name)
+                # else:
+                #     name = FaceRecognition.store_current_face(roi_resized, name)
 
                 cropped_img = np.expand_dims(np.expand_dims(cv.resize(roi, (48, 48)), -1), 0)
 
@@ -150,6 +160,9 @@ def detect_emotions(ui, local_timer, emotion_dict, emotion_dict_fullname,
 
             x = time.time_ns()
 
+        if len(face_data[:]) != 0 and not once:
+            FaceRecognition.store_face_name_with_encoding(np.array(face_data[:]),client_ids[:][0])
+            once=True
         ui.update_camera(frame)
         # ui.update_emotion_graph(client_profile=local_client_profile)
         if cv.waitKey(1) & 0xFF == ord('q') or local_timer <= 0:

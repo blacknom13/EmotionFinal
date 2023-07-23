@@ -14,6 +14,15 @@ def store_current_face(face, name):
     return name
 
 
+def store_face_name_with_encoding(face_encode, name):
+    try:
+        stored_faces.append(face_encode)
+        faces_names.append(name)
+    except IndexError:
+        print("No Face")
+    return name
+
+
 def recognize_face(face_rectangle):
     try:
         face_encode = face_recognition.face_encodings(face_rectangle)[0]

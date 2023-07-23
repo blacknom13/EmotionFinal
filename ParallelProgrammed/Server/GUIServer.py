@@ -2,10 +2,12 @@ import EmotionPercentDynamicServer
 from NewtonFunctionFile import NewtonFunction
 from FullFunctionFile import FullFunction
 from keras.models import model_from_json
+from ParallelProgrammed import FaceRecognition
 import mediapipe as mp
 import cv2 as cv
 import multiprocessing
 from multiprocessing.connection import Listener
+from multiprocessing.managers import BaseManager
 import PySimpleGUI as sg
 import NewGui2
 import socket
@@ -23,11 +25,15 @@ def format_result_percent(first_profile, second_profile, index):
         return " {}%".format(abs(res))
 
 
+def update_faces():
+    return clients_ids, clients_faces
+
+
 def start_camera():
     return cv.VideoCapture(0), NewGui2.BetterUI()
 
 
-def camera_capture(clients):
+def camera_capture(ids, emotions, faces):
     local_capture, local_ui = start_camera()
 
     emotion_dict_fullname_eng = {0: 'Angry', 1: "Happy", 2: "Neutral", 3: "Sad"}
@@ -66,40 +72,55 @@ def camera_capture(clients):
     print("Emotion Detection Model Loaded")
     ###########
 
+    EmotionPercentDynamicServer.emotion_dict = emotion_dict_fullname_eng
+    EmotionPercentDynamicServer.emotion_dict_fullname = emotion_dict_fullname_eng
+    EmotionPercentDynamicServer.emotion_color = emotion_color
+    EmotionPercentDynamicServer.capture = local_capture
+    EmotionPercentDynamicServer.face_detection = face_detection
+    EmotionPercentDynamicServer.emotion_model = emotion_model
+    EmotionPercentDynamicServer.func = func
+    EmotionPercentDynamicServer.emotion_array = emotion_array
+    EmotionPercentDynamicServer.emotion_colors = emotion_color_rgb
+
     direct_to, total_frames = EmotionPercentDynamicServer.detect_emotions(ui=local_ui, local_timer=timer,
-                                                                          emotion_dict=emotion_dict_fullname_eng,
-                                                                          emotion_dict_fullname=emotion_dict_fullname_eng,
-                                                                          emotion_color=emotion_color,
-                                                                          capture=local_capture,
-                                                                          face_detection=face_detection,
-                                                                          emotion_model=emotion_model,
-                                                                          func=func,
-                                                                          emotion_array=emotion_array,
-                                                                          emotion_colors=emotion_color_rgb,)
+                                                                          client_ids=ids, face_data=faces,
+                                                                          starting_emotions=emotions)
+    # ,
+    #                                                                   emotion_dict=emotion_dict_fullname_eng,
+    #                                                                   emotion_dict_fullname=emotion_dict_fullname_eng,
+    #                                                                   emotion_color=emotion_color,
+    #                                                                   capture=local_capture,
+    #                                                                   face_detection=face_detection,
+    #                                                                   emotion_model=emotion_model,
+    #                                                                   func=func,
+    #                                                                   emotion_array=emotion_array,
+    #                                                                   emotion_colors=emotion_color_rgb,)
 
 
 if __name__ == "__main__":
     # camera_capture([0, 0, 0, 0])
     manager = multiprocessing.Manager()
     clients_faces = manager.list()
-    client_ids = manager.list()
-    client_start_emotions = manager.list()
-    TRESS = multiprocessing.Process(target=camera_capture, args=[clients_faces])
+    clients_ids = manager.list()
+    clients_start_emotions = manager.list()
+    TRESS = multiprocessing.Process(target=camera_capture, args=[clients_ids, clients_start_emotions, clients_faces])
     TRESS.start()
 
     HOST = '192.168.43.180'
     PORT = 11111
 
-    sock=Listener((HOST,PORT))
-    #sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    #sock.bind((HOST, PORT))
-    #sock.listen(1)
+    sock = Listener((HOST, PORT))
+    # sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    # sock.bind((HOST, PORT))
+    # sock.listen(1)
 
     while True:
-        conn=sock.accept()
-        data=conn.recv()
-        print(data)
-        clients_faces.append()
+        conn = sock.accept()
+        data = conn.recv()
+        clients_ids.append(data[0])
+        clients_start_emotions.append(data[1])
+        clients_faces.append(data[2])
+        # print(data)
         # conn, addr = sock.accept()
         # print("Connected by", addr)
         #
