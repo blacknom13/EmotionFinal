@@ -152,4 +152,6 @@ def detect_emotions(preparation_timer, ui, local_timer, local_client_profile, em
         if cv.waitKey(1) & 0xFF == ord('q') or local_timer <= 0 and once:
             break
 
-    return local_total_frames, direct_to, fr.return_face_by_name(name)
+    face_data=fr.return_face_by_name(name).copy()
+    fr.delete_face_by_name(name)
+    return face_data

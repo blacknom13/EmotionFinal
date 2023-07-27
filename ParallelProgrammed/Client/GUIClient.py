@@ -6,10 +6,11 @@ from keras.models import model_from_json
 import mediapipe as mp
 import cv2 as cv
 import PySimpleGUI as sg
+import numpy as np
 import pickle
 import socket
 
-HOST = "192.168.43.180"
+HOST = '192.168.0.14' #"192.168.43.180"
 PORT = 11111
 
 
@@ -93,6 +94,7 @@ def camera_capture(button_pressed, client_id, camera_ready):
     camera_ready.acquire()
     camera_ready.notify()
     camera_ready.release()
+    emotion_model.predict(np.zeros((1, 48, 48, 1)))
     while True:
         ret, frame = local_capture.read()
         if not ret:
@@ -100,7 +102,7 @@ def camera_capture(button_pressed, client_id, camera_ready):
         local_ui.update_camera(frame)
         if button_pressed.value == 1:
             button_pressed.value = 0
-            direct_to, total_frames, face_data = EmotionPercentDynamicClient.detect_emotions(init_timer, local_ui, 0,
+            face_data = EmotionPercentDynamicClient.detect_emotions(init_timer, local_ui, 0,
                                                                                            client_profile,
                                                                                            emotion_dict_fullname_eng,
                                                                                            emotion_dict_fullname_eng,
