@@ -1,6 +1,6 @@
 import EmotionPercentDynamicServer
-from NewtonFunctionFile import NewtonFunction
-from FullFunctionFile import FullFunction
+from ParallelProgrammed.NewtonFunctionFile import NewtonFunction
+from ParallelProgrammed.FullFunctionFile import FullFunction
 from keras.models import model_from_json
 import mediapipe as mp
 import cv2 as cv
