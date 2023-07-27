@@ -89,7 +89,7 @@ if __name__ == "__main__":
     TRESS = multiprocessing.Process(target=camera_capture, args=[clients_ids, clients_start_emotions, clients_faces])
     TRESS.start()
 
-    HOST = '192.168.43.180'  # '192.168.0.14'
+    HOST = '192.168.0.14' #'192.168.43.180'
     PORT = 11111
 
     sock = Listener((HOST, PORT))
@@ -100,3 +100,4 @@ if __name__ == "__main__":
         clients_ids.append(data[0])
         clients_start_emotions.append(data[1])
         clients_faces.append(data[2])
+        #print (clients_faces[:])

@@ -63,7 +63,7 @@ def detect_emotions(ui, client_ids, face_data, starting_emotions):
         if faces.detections and len(id_to_info) != 0:
 
             for id, detection in enumerate(faces.detections):
-                print(id)
+                #print(id)
 
                 temp = detection.location_data.relative_bounding_box
 
@@ -81,13 +81,13 @@ def detect_emotions(ui, client_ids, face_data, starting_emotions):
 
                 recognized_client = FaceRecognition.recognize_face(roi_resized)
                 if recognized_client != 'No Face' and recognized_client != '' and recognized_client is not None:
-                    print(FaceRecognition.faces_names)
+                    print(recognized_client)
 
                     cropped_img = np.expand_dims(np.expand_dims(cv.resize(roi, (48, 48)), -1), 0)
 
                     prediction = emotion_model.predict(cropped_img)[0]
 
-                    print(prediction)
+                    #print(prediction)
                     # label = emotion_dict[prediction.argmax()]
                     id_to_info[recognized_client][0][prediction.argmax()] += 1
                     local_total_frames = count_num_of_frames(id_to_info[recognized_client][0])
@@ -173,17 +173,18 @@ def detect_emotions(ui, client_ids, face_data, starting_emotions):
             x = time.time_ns()
 
         if len(face_data[:]) != 0:
-            local_face_data = face_data[:]
+            local_face_data = face_data[:][0]
             local_client_ids = client_ids[:][0]
             FaceRecognition.store_face_name_with_encoding(local_face_data, local_client_ids)
             id_to_info[local_client_ids] = [starting_emotions[:][0].copy(), DEFAULT_TIMER, time.time_ns()]
-            face_data = []
-            client_ids = []
-            starting_emotions = []
+            face_data[:]=[]
+            client_ids[:]=[]
+            starting_emotions[:]=[]
             print(id_to_info)
 
         # for t in local_timer:
 
+        #print("#####################################################################")
         ui.update_camera(frame)
 
         if cv.waitKey(1) & 0xFF == ord('q'):

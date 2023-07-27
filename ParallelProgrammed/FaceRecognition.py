@@ -10,7 +10,7 @@ def store_current_face(face, name):
         stored_faces.append(face_encode)
         faces_names.append(name)
     except IndexError:
-        print("No Face")
+        pass#print("No Face")
     return name
 
 
@@ -19,19 +19,19 @@ def store_face_name_with_encoding(face_encode, name):
         stored_faces.append(face_encode)
         faces_names.append(name)
     except IndexError:
-        print("No Face")
+        pass#print("No Face")
     return name
 
 
 def recognize_face(face_rectangle):
     try:
         face_encode = face_recognition.face_encodings(face_rectangle)[0]
-        for i in range(len(stored_faces)):
-            result = face_recognition.compare_faces([stored_faces[i]], face_encode)
-            if result:
-                return faces_names[i]
+        result = face_recognition.compare_faces(stored_faces, face_encode)
+        print(result)
+        index=[i for i,x in enumerate(result) if x]
+        return faces_names[index[0]]
     except IndexError:
-        print("No Face")
+        pass#print("No Face")
 
 
 def return_face_by_name(name):
