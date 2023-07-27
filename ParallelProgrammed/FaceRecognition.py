@@ -10,7 +10,7 @@ def store_current_face(face, name):
         stored_faces.append(face_encode)
         faces_names.append(name)
     except IndexError:
-        print("No face")
+        print("No Face")
     return name
 
 
@@ -31,7 +31,7 @@ def recognize_face(face_rectangle):
             if result:
                 return faces_names[i]
     except IndexError:
-        print("No face")
+        print("No Face")
 
 
 def return_face_by_name(name):
