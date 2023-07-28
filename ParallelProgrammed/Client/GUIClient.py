@@ -7,8 +7,6 @@ import mediapipe as mp
 import cv2 as cv
 import PySimpleGUI as sg
 import numpy as np
-import pickle
-import socket
 
 HOST = '192.168.0.14' #"192.168.43.180"
 PORT = 11111
@@ -29,12 +27,6 @@ def start_camera():
 
 
 def send_data(face_id, client_emotions, data):
-    # sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    # sock.connect((HOST, PORT))
-    # print("Connected successfully to: {} on the port {}".format(HOST, PORT))
-    # sock.send(face_id)
-    # sock.send(data)
-    # sock.send(client_emotions)
     sock=Client((HOST,PORT))
     sock.send([face_id,client_emotions,data])
     sock.close()
@@ -43,9 +35,7 @@ def send_data(face_id, client_emotions, data):
 def camera_capture(button_pressed, client_id, camera_ready):
     local_capture, local_ui = start_camera()
 
-    emotion_dict = {0: 'Agr', 1: "Hpy", 2: "Ntl", 3: "Sad"}
     emotion_dict_fullname_eng = {0: 'Angry', 1: "Happy", 2: "Neutral", 3: "Sad"}
-    emotion_array_eng = ['Angry', "Happy", "Neutral", "Sad"]
     emotion_array = ['Гнев', "Радость", "Нейтральность", "Грусть"]
     client_profile = [0, 0, 0, 0]
     emotion_color = [[0, 0, 175], [0, 200, 0], [75, 75, 75], [175, 0, 0]]
@@ -53,12 +43,7 @@ def camera_capture(button_pressed, client_id, camera_ready):
 
     age_list = ['25-30', '42-48', '6-20', '60-98']
 
-    direct_to = ""
-
     INITIAL_CLIENT_STATE_TIMER = 6000000000  # In nanoseconds
-
-    # time function definition
-    total_frames = 0
 
     # Initializing face detector
     face_detector = mp.solutions.face_detection
@@ -115,12 +100,7 @@ def camera_capture(button_pressed, client_id, camera_ready):
                                                                                            emotion_array=emotion_array,
                                                                                            emotion_colors=emotion_color_rgb)
 
-            #data = pickle.dumps(face_data)
-            #face_name=pickle.dumps(client_id.value.decode())
-            #client_emotions=pickle.dumps(client_profile)
-            #send_data(data, face_name, client_emotions)
             send_data(client_id.value.decode(), client_profile, face_data)
-
             client_profile = [0, 0, 0, 0]
 
 

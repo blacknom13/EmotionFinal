@@ -1,29 +1,14 @@
 import copy
 import cv2 as cv
 import ParallelProgrammed.FaceRecognition as fr
+import ParallelProgrammed.HelperLibrary as help
 import numpy as np
 import time
-
-
-def draw_rect_frame(frame, x, y, width, height, thickness, length, color):
-    cv.line(frame, (x, y), (x + length, y), color, thickness)
-    cv.line(frame, (x + width, y), (x + width - length, y), color, thickness)
-
-    cv.line(frame, (x + width, y), (x + width, y + length), color, thickness)
-    cv.line(frame, (x + width, y + height), (x + width, y + height - length), color, thickness)
-
-    cv.line(frame, (x + width, y + height), (x + width - length, y + height), color, thickness)
-    cv.line(frame, (x, y + height), (x + length, y + height), color, thickness)
-
-    cv.line(frame, (x, y + height), (x, y + height - length), color, thickness)
-    cv.line(frame, (x, y), (x, y + length), color, thickness)
-
 
 def detect_emotions(preparation_timer, ui, local_timer, local_client_profile, emotion_dict, emotion_dict_fullname,
                     emotion_color, capture, face_detection, emotion_model, age_model=None, age_labels=None, name=None,
                     emotion_array=None, emotion_colors=None):
     current = time.time_ns()
-    direct_to = ""
     fps = 0
     FPS = 0
     start_minute = False
@@ -91,7 +76,7 @@ def detect_emotions(preparation_timer, ui, local_timer, local_client_profile, em
                              (0, 255, 255), 1)
 
                 # Fancy frame
-                draw_rect_frame(frame, intx, inty, intWidth, intHeight, 8, 20, (0, 255, 0))
+                help.draw_rect_frame(frame, intx, inty, intWidth, intHeight, 8, 20, (0, 255, 0))
 
             if (time.time_ns() - current) / 1000000000 > 1:
                 current = time.time_ns()
@@ -140,8 +125,8 @@ def detect_emotions(preparation_timer, ui, local_timer, local_client_profile, em
                        (intx - 150, inty + int(intHeight / 2) + 60), cv.FONT_HERSHEY_COMPLEX_SMALL, 1, (175, 0, 0),
                        1)
 
-            cv.rectangle(frame, (0, 0), (640, 40), (200, 200, 200), 40)
-            cv.putText(frame, "FPS: " + str(FPS), (20, 40), cv.FONT_HERSHEY_TRIPLEX, 1.2, (0, 0, 255))
+        cv.rectangle(frame, (0, 0), (100, 40), (200, 200, 200), 40)
+        cv.putText(frame, "FPS: " + str(FPS), (10, 30), cv.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 0, 255))
 
         if len(predicted_age) != 0:
             cv.putText(frame, predicted_age,

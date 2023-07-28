@@ -2,6 +2,7 @@ import copy
 import GUIServer
 import matplotlib.pyplot as plt
 from ParallelProgrammed import FaceRecognition
+import ParallelProgrammed.HelperLibrary as help
 import cv2 as cv
 import numpy as np
 import time
@@ -19,26 +20,11 @@ emotion_colors = None
 DEFAULT_TIMER = 20  # In seconds
 
 
-def draw_rect_frame(frame, x, y, width, height, thickness, length, color):
-    cv.line(frame, (x, y), (x + length, y), color, thickness)
-    cv.line(frame, (x + width, y), (x + width - length, y), color, thickness)
-
-    cv.line(frame, (x + width, y), (x + width, y + length), color, thickness)
-    cv.line(frame, (x + width, y + height), (x + width, y + height - length), color, thickness)
-
-    cv.line(frame, (x + width, y + height), (x + width - length, y + height), color, thickness)
-    cv.line(frame, (x, y + height), (x + length, y + height), color, thickness)
-
-    cv.line(frame, (x, y + height), (x, y + height - length), color, thickness)
-    cv.line(frame, (x, y), (x, y + length), color, thickness)
-
-
 def count_num_of_frames(emotion_list):
     return sum(emotion_list)
 
 
 def detect_emotions(ui, client_ids, face_data, starting_emotions):
-    local_timer = 20
     current = time.time_ns()
     direct_to = ""
     real_time = 0
@@ -46,8 +32,8 @@ def detect_emotions(ui, client_ids, face_data, starting_emotions):
     fps = 0
     FPS = 0
     ui.configure_figure(emotion_array, emotion_colors)
-    anger_percent=0
-    sad_percent=0
+    anger_percent = 0
+    sad_percent = 0
 
     while True:
         # find haar cascade to draw bounding box around face
@@ -63,7 +49,7 @@ def detect_emotions(ui, client_ids, face_data, starting_emotions):
         if faces.detections and len(id_to_info) != 0:
 
             for id, detection in enumerate(faces.detections):
-                #print(id)
+                # print(id)
 
                 temp = detection.location_data.relative_bounding_box
 
@@ -87,10 +73,11 @@ def detect_emotions(ui, client_ids, face_data, starting_emotions):
 
                     prediction = emotion_model.predict(cropped_img)[0]
 
-                    #print(prediction)
+                    # print(prediction)
                     # label = emotion_dict[prediction.argmax()]
                     id_to_info[recognized_client][0][prediction.argmax()] += 1
-                    local_total_frames = count_num_of_frames(id_to_info[recognized_client][0])
+                    id_to_info[recognized_client][1] += 1
+                    local_total_frames = id_to_info[recognized_client][1]
                     anger_percent = int(
                         id_to_info[recognized_client][0][0] * 100 / local_total_frames)
                     happy_percent = int(
@@ -109,13 +96,7 @@ def detect_emotions(ui, client_ids, face_data, starting_emotions):
                                  (0, 255, 255), 1)
 
                     # Fancy frame
-                    draw_rect_frame(frame, intx, inty, intWidth, intHeight, 8, 20, (0, 255, 0))
-
-                    cv.rectangle(frame, (0, 0), (640, 40), (200, 200, 200), 40)
-                    cv.putText(frame, "FPS: " + str(FPS), (20, 40), cv.FONT_HERSHEY_TRIPLEX, 1.2, (0, 0, 255))
-                    cv.putText(frame, "Timer: " + str(format("%.2f" % local_timer)), (300, 40), cv.FONT_HERSHEY_TRIPLEX,
-                               1.2,
-                               (255, 0, 255))
+                    help.draw_rect_frame(frame, intx, inty, intWidth, intHeight, 8, 20, (0, 255, 0))
 
                     sub_frame = frame[max(0, inty - 40): max(0, inty + intHeight),
                                 max(0, intx - 150): max(0, intx + intWidth)]
@@ -128,13 +109,15 @@ def detect_emotions(ui, client_ids, face_data, starting_emotions):
                         frame[inty:inty + intHeight, intx:intx + intWidth] = temp_face
 
                     cv.putText(frame,
-                               emotion_dict_fullname[np.argmax(id_to_info[recognized_client][0][prediction.argmax()])],
+                               # emotion_dict_fullname[np.argmax(id_to_info[recognized_client][0][prediction.argmax()])],
+                               str(format("%.2f" % id_to_info[recognized_client][2])) + " sec",
                                (intx + int(intWidth / 2) - 50, label_position[1] + 10), cv.FONT_HERSHEY_COMPLEX_SMALL,
                                1,
-                               emotion_color[np.argmax(id_to_info[recognized_client][0][prediction.argmax()])], 1)
+                               (0, 0, 175), 1)
+                    # emotion_color[np.argmax(id_to_info[recognized_client][0][prediction.argmax()])], 1)
 
                     cv.putText(frame, recognized_client,
-                               (intx - 120, inty + intHeight // 4), cv.FONT_HERSHEY_COMPLEX_SMALL, 4,
+                               (intx - 120, inty + intHeight // 4), cv.FONT_HERSHEY_COMPLEX_SMALL, 3,
                                (0, 0, 0), 4)
 
                     # Putting the labels of emotions on the left
@@ -153,38 +136,50 @@ def detect_emotions(ui, client_ids, face_data, starting_emotions):
                                (175, 0, 0),
                                1)
 
-                    cv.putText(frame, recognized_client,
-                               (intx + int(intWidth / 2) - 20, label_position[1] + 10), cv.FONT_HERSHEY_COMPLEX_SMALL,
-                               1,
-                               # (intx - 75, inty), cv.FONT_HERSHEY_COMPLEX_SMALL, 4,
-                               emotion_color[np.argmax(id_to_info[recognized_client][0][prediction.argmax()])], 1)
+                    if (time.time_ns() - current) / 1000000000 > 1:
+                        id_to_info[recognized_client][2] -= func.fx((anger_percent + sad_percent) / 100.0)
+                        if id_to_info[recognized_client][2] > 20:
+                            id_to_info[recognized_client][2] = 20
+                        real_time += 1
+                    # cv.putText(frame, recognized_client,
+                    #            (intx + int(intWidth / 2) - 20, label_position[1] + 10), cv.FONT_HERSHEY_COMPLEX_SMALL,
+                    #            1,
+                    #            # (intx - 75, inty), cv.FONT_HERSHEY_COMPLEX_SMALL, 4,
+                    #            emotion_color[np.argmax(id_to_info[recognized_client][0][prediction.argmax()])], 1)
+
+                    # cv.putText(frame, str(format("%.2f" % local_timer)) + " sec",
+                    #            (intx - 150, inty), cv.FONT_HERSHEY_COMPLEX_SMALL, 1,
+                    #            (0, 0, 175), 1)
                 # cv.imshow('Emotion Detector', frame)
-            if (time.time_ns() - current) / 1000000000 > 1:
-                current = time.time_ns()
-                FPS = fps
-                fps = 0
-                local_timer -= func.fx((anger_percent + sad_percent) / 100.0)
-                if local_timer > 20:
-                    local_timer = 20
-                real_time += 1
 
-            fps += 1
-
-            x = time.time_ns()
+        if (time.time_ns() - current) / 1000000000 > 1:
+            current = time.time_ns()
+            FPS = fps
+            fps = 0
+            real_time += 1
+        fps += 1
 
         if len(face_data[:]) != 0:
             local_face_data = face_data[:][0]
             local_client_ids = client_ids[:][0]
+            local_starting_emotions = starting_emotions[:][0]
+            local_total_frames = count_num_of_frames(local_starting_emotions)
+
             FaceRecognition.store_face_name_with_encoding(local_face_data, local_client_ids)
-            id_to_info[local_client_ids] = [starting_emotions[:][0].copy(), DEFAULT_TIMER, time.time_ns()]
-            face_data[:]=[]
-            client_ids[:]=[]
-            starting_emotions[:]=[]
+
+            id_to_info[local_client_ids] = [local_starting_emotions.copy(), local_total_frames, DEFAULT_TIMER,
+                                            time.time_ns()]
+
+            face_data[:] = []
+            client_ids[:] = []
+            starting_emotions[:] = []
             print(id_to_info)
 
         # for t in local_timer:
 
-        #print("#####################################################################")
+        cv.rectangle(frame, (0, 0), (100, 40), (200, 200, 200), 40)
+        cv.putText(frame, "FPS: " + str(FPS), (10, 30), cv.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 0, 255))
+        # print("#####################################################################")
         ui.update_camera(frame)
 
         if cv.waitKey(1) & 0xFF == ord('q'):
@@ -195,7 +190,7 @@ def detect_emotions(ui, client_ids, face_data, starting_emotions):
             # else:
             #     direct_to = "обычному сотруднику"
             break
-    return local_total_frames, direct_to
+    return direct_to
 
 
 def make_bar_chart(figure_name, client_profile, compare_to_client_profile, total_frames, emotion_array,

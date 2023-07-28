@@ -9,6 +9,9 @@ from multiprocessing.connection import Listener
 import NewGui2
 import numpy as np
 
+HOST = '192.168.0.14' #'192.168.43.180'
+PORT = 11111
+
 
 def format_result_percent(first_profile, second_profile, index):
     res = int(second_profile[index] / sum(second_profile) * 100) - int(first_profile[index] / sum(first_profile) * 100)
@@ -75,7 +78,7 @@ def camera_capture(ids, emotions, faces):
     EmotionPercentDynamicServer.emotion_colors = emotion_color_rgb
 
     emotion_model.predict(np.zeros((1, 48, 48, 1)))
-    direct_to, total_frames = EmotionPercentDynamicServer.detect_emotions(ui=local_ui,
+    direct_to= EmotionPercentDynamicServer.detect_emotions(ui=local_ui,
                                                                           client_ids=ids, face_data=faces,
                                                                           starting_emotions=emotions)
 
@@ -88,9 +91,6 @@ if __name__ == "__main__":
     clients_start_emotions = manager.list()
     TRESS = multiprocessing.Process(target=camera_capture, args=[clients_ids, clients_start_emotions, clients_faces])
     TRESS.start()
-
-    HOST = '192.168.0.14' #'192.168.43.180'
-    PORT = 11111
 
     sock = Listener((HOST, PORT))
 
