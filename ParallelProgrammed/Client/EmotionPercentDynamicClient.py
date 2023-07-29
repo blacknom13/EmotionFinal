@@ -27,7 +27,7 @@ def detect_emotions(preparation_timer, ui, local_timer, local_client_profile,
         if not ret:
             break
 
-        predicted_age = [0,0,0,0]
+        predicted_age = [0, 0, 0, 0]
         img = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
         faces = face_detection.process(img)
 
@@ -61,15 +61,11 @@ def detect_emotions(preparation_timer, ui, local_timer, local_client_profile,
                     roi_resized = roi_resized.astype('float') / 255.0
                     cropped_img = np.expand_dims(roi_resized, axis=0)
                     predicted = age_model.predict(cropped_img)[0]
-                    #predicted_age = age_labels[predicted.argmax()]
-                    predicted_age[predicted.argmax()]+=1
+                    # predicted_age = age_labels[predicted.argmax()]
+                    predicted_age[predicted.argmax()] += 1
 
-                local_client_profile[prediction.argmax()] += 1
-                local_total_frames += 1
-                anger_percent = int(local_client_profile[0] * 100 / local_total_frames)
-                happy_percent = int(local_client_profile[1] * 100 / local_total_frames)
-                neutral_percent = int(local_client_profile[2] * 100 / local_total_frames)
-                sad_percent = int(local_client_profile[3] * 100 / local_total_frames)
+                anger_percent, happy_percent, neutral_percent, sad_percent, local_total_frames = (
+                    help.update_client_emotions(prediction, local_client_profile, local_total_frames))
 
                 label_position = (intx + 20, inty - 20)
 

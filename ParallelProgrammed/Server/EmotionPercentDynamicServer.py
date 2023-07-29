@@ -31,17 +31,6 @@ def client_should_be_directed_by_age(client_age):
         return False
 
 
-def update_client_emotions(img, emotion_list, frame_counter):
-    # updates client's emotions
-    prediction = emotion_model.predict(img)[0]
-    emotion_list[prediction.argmax()] += 1
-    frame_counter += 1
-    local_total_frames = frame_counter
-    anger_percent, happy_percent, neutral_percent, sad_percent = [int(x * 100 / local_total_frames) for x in
-                                                                  emotion_list]
-    return anger_percent, happy_percent, neutral_percent, sad_percent, frame_counter
-
-
 def add_new_client_to_list(face_data, client_ids, starting_emotions, client_age, clients_dict):
     if client_should_be_directed_by_age(client_age):
         direct_to(age=True)
@@ -125,10 +114,11 @@ def detect_emotions(ui, client_ids, face_data, starting_emotions, client_age):
 
                 if recognized_client != 'No Face' and recognized_client is not None:
                     cropped_img = np.expand_dims(np.expand_dims(cv.resize(roi, (48, 48)), -1), 0)
+                    prediction = emotion_model.predict(cropped_img)[0]
                     anger_percent, happy_percent, neutral_percent, sad_percent, id_to_info[recognized_client][
-                        1] = update_client_emotions(cropped_img,
-                                                    id_to_info[recognized_client][0],
-                                                    id_to_info[recognized_client][1])
+                        1] = help.update_client_emotions(prediction,
+                                                         id_to_info[recognized_client][0],
+                                                         id_to_info[recognized_client][1])
                     label_position = (intx + 20, inty - 20)
 
                     # Predict the emotions

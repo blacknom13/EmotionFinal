@@ -40,3 +40,13 @@ def print_emotion_percents(frame, emotion_names, emotion_values, emotion_colors,
         cv.putText(frame, emotion_names[i] + ":" + str(emotion_values[i]) + '%',
                    (intx - 150, inty + int(int_height / 2) + offset * i),
                    cv.FONT_HERSHEY_COMPLEX_SMALL, 1, emotion_colors[i], 1)
+
+
+def update_client_emotions(prediction, emotion_list, frame_counter):
+    # updates client's emotions
+    emotion_list[prediction.argmax()] += 1
+    frame_counter += 1
+    local_total_frames = frame_counter
+    anger_percent, happy_percent, neutral_percent, sad_percent = [int(x * 100 / local_total_frames) for x in
+                                                                  emotion_list]
+    return anger_percent, happy_percent, neutral_percent, sad_percent, frame_counter
