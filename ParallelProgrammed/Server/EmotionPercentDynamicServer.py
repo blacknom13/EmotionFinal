@@ -1,4 +1,3 @@
-import matplotlib.pyplot as plt
 from ParallelProgrammed import FaceRecognition
 import ParallelProgrammed.HelperLibrary as help
 import cv2 as cv
@@ -94,21 +93,11 @@ def detect_emotions(ui, client_ids, face_data, starting_emotions, client_age):
 
         if faces.detections and len(id_to_info) != 0:
 
-            for id, detection in enumerate(faces.detections):
-
+            for idd, detection in enumerate(faces.detections):
                 temp = detection.location_data.relative_bounding_box
 
-                intx = max(0, int(len(frame[0]) * temp.xmin))
-                inty = max(0, int(len(frame) * temp.ymin))
-                inty -= int(.1 * inty)
-                intWidth = int(len(frame[0]) * temp.width)
-                intHeight = int(len(frame) * temp.height)
-                intHeight += int(.1 * intHeight)
-
-                roi = frame[inty:inty + intHeight, intx:intx + intWidth]
-                roi = cv.resize(roi, (48, 48), interpolation=cv.INTER_AREA)
-                roi_resized = cv.resize(roi, (80, 80), interpolation=cv.INTER_AREA)
-                roi = cv.cvtColor(roi, cv.COLOR_RGB2GRAY)
+                intx, inty, intWidth, intHeight = help.extract_face_boundaries(frame, temp)
+                roi, roi_resized = help.extract_rois(frame, intx, inty, intWidth, intHeight)
 
                 recognized_client = FaceRecognition.recognize_face(roi_resized)
 

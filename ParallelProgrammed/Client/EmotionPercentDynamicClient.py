@@ -1,4 +1,3 @@
-import copy
 import cv2 as cv
 import ParallelProgrammed.FaceRecognition as fr
 import ParallelProgrammed.HelperLibrary as help
@@ -33,20 +32,11 @@ def detect_emotions(preparation_timer, ui, local_timer, local_client_profile,
 
         if faces.detections:
             intx, inty, intWidth, intHeight = 0, 0, 0, 0
-            for id, detection in enumerate(faces.detections):
+            for idd, detection in enumerate(faces.detections):
                 temp = detection.location_data.relative_bounding_box
 
-                intx = max(0, int(len(frame[0]) * temp.xmin))
-                inty = max(0, int(len(frame) * temp.ymin))
-                inty -= int(.1 * inty)
-                intWidth = int(len(frame[0]) * temp.width)
-                intHeight = int(len(frame) * temp.height)
-                intHeight += int(.1 * intHeight)
-
-                roi = frame[inty:inty + intHeight, intx:intx + intWidth]
-                roi = cv.resize(roi, (48, 48), interpolation=cv.INTER_AREA)
-                roi_resized = cv.resize(roi, (80, 80), interpolation=cv.INTER_AREA)
-                roi = cv.cvtColor(roi, cv.COLOR_RGB2GRAY)
+                intx, inty, intWidth, intHeight = help.extract_face_boundaries(frame, temp)
+                roi, roi_resized = help.extract_rois(frame, intx, inty, intWidth, intHeight)
 
                 if face_stored:
                     recognized_client = fr.recognize_face(roi_resized)
@@ -61,7 +51,6 @@ def detect_emotions(preparation_timer, ui, local_timer, local_client_profile,
                     roi_resized = roi_resized.astype('float') / 255.0
                     cropped_img = np.expand_dims(roi_resized, axis=0)
                     predicted = age_model.predict(cropped_img)[0]
-                    # predicted_age = age_labels[predicted.argmax()]
                     predicted_age[predicted.argmax()] += 1
 
                 anger_percent, happy_percent, neutral_percent, sad_percent, local_total_frames = (
