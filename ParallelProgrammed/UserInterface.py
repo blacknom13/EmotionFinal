@@ -76,7 +76,7 @@ class BetterUI:
     def bgr2rgb(self, bgr_colors):
         rgb_colors = []
         for color in bgr_colors:
-            rgb_colors.append([color[2]/256, color[1]/256, color[0]/256])
+            rgb_colors.append([color[2] / 256, color[1] / 256, color[0] / 256])
         return rgb_colors
 
     def move_center(self):
@@ -87,3 +87,6 @@ class BetterUI:
 
     def destroy_window(self):
         self.window.close()
+
+    def graph_is_valid(self):
+        return self.figure_canvas_agg is not None

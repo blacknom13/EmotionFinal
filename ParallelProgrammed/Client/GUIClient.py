@@ -73,7 +73,6 @@ def camera_capture(button_pressed, client_id, camera_ready):
     camera_ready.release()
     emotion_model.predict(np.zeros((1, 48, 48, 1)))
 
-    local_ui.configure_figure(emotion_array_eng, emotion_colors)
     while True:
         ret, frame = local_capture.read()
         if not ret:
