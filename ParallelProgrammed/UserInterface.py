@@ -89,4 +89,4 @@ class BetterUI:
         self.window.close()
 
     def graph_is_valid(self):
-        return self.figure_canvas_agg is not None
+        return not isinstance(self.figure_canvas_agg, str)
