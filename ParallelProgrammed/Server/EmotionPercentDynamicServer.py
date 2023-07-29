@@ -19,32 +19,27 @@ DEFAULT_TIMER = 20  # In seconds
 
 
 def send_face_to_specialist(client_id, face_data):
+    # should send the data to the specialist that will be working with our client
     pass
 
 
 def client_should_be_directed_by_age(client_age):
+    # checks if the client should be sent directly to the specialist due to being an elder
     if age_list.index(client_age) > 2:
         return True
     else:
         return False
 
 
-def update_client_emotions(img, recognized_client, clients_dict):
+def update_client_emotions(img, emotion_list, frame_counter):
+    # updates client's emotions
     prediction = emotion_model.predict(img)[0]
-
-    clients_dict[recognized_client][0][prediction.argmax()] += 1
-    clients_dict[recognized_client][1] += 1
-    local_total_frames = clients_dict[recognized_client][1]
-    anger_percent = int(
-        clients_dict[recognized_client][0][0] * 100 / local_total_frames)
-    happy_percent = int(
-        clients_dict[recognized_client][0][1] * 100 / local_total_frames)
-    neutral_percent = int(
-        clients_dict[recognized_client][0][2] * 100 / local_total_frames)
-    sad_percent = int(
-        clients_dict[recognized_client][0][3] * 100 / local_total_frames)
-
-    return anger_percent, happy_percent, neutral_percent, sad_percent
+    emotion_list[prediction.argmax()] += 1
+    frame_counter += 1
+    local_total_frames = frame_counter
+    anger_percent, happy_percent, neutral_percent, sad_percent = [int(x * 100 / local_total_frames) for x in
+                                                                  emotion_list]
+    return anger_percent, happy_percent, neutral_percent, sad_percent, frame_counter
 
 
 def add_new_client_to_list(face_data, client_ids, starting_emotions, client_age, clients_dict):
@@ -78,7 +73,7 @@ def update_client_state(clients_dict, client_id, anger_percent, sad_percent):
         real_time = time.time_ns() - clients_dict[client_id][3]
         real_time /= 1000000000
         print(direct_to(real_time=real_time))
-        send_face_to_specialist(client_id,FaceRecognition.delete_face_by_name(client_id))
+        send_face_to_specialist(client_id, FaceRecognition.delete_face_by_name(client_id))
 
 
 def direct_to(real_time=None, age=False):
@@ -101,7 +96,6 @@ def detect_emotions(ui, client_ids, face_data, starting_emotions, client_age):
     ui.configure_figure(emotion_array, emotion_colors)
 
     while True:
-        # find haar cascade to draw bounding box around face
         ret, frame = capture.read()
         if not ret:
             break
@@ -131,9 +125,10 @@ def detect_emotions(ui, client_ids, face_data, starting_emotions, client_age):
 
                 if recognized_client != 'No Face' and recognized_client is not None:
                     cropped_img = np.expand_dims(np.expand_dims(cv.resize(roi, (48, 48)), -1), 0)
-                    anger_percent, happy_percent, neutral_percent, sad_percent = update_client_emotions(cropped_img,
-                                                                                                        recognized_client,
-                                                                                                        id_to_info)
+                    anger_percent, happy_percent, neutral_percent, sad_percent, id_to_info[recognized_client][
+                        1] = update_client_emotions(cropped_img,
+                                                    id_to_info[recognized_client][0],
+                                                    id_to_info[recognized_client][1])
                     label_position = (intx + 20, inty - 20)
 
                     # Predict the emotions
@@ -181,61 +176,3 @@ def detect_emotions(ui, client_ids, face_data, starting_emotions, client_age):
 
         if cv.waitKey(1) & 0xFF == ord('q'):
             break
-
-
-def make_bar_chart(figure_name, client_profile, compare_to_client_profile, total_frames, emotion_array,
-                   emotion_color_rgb):
-    y_pos = np.arange(len(emotion_array))
-    color = np.array(emotion_color_rgb)
-    client_profile = [(x / total_frames) * 100 for x in client_profile]
-    if len(compare_to_client_profile) != 0:
-        compare_to_client_profile = [(x / sum(compare_to_client_profile)) * 100 for x in compare_to_client_profile]
-
-    width = .35
-    fig, ax = plt.subplots()
-    first_prof = ax.bar(y_pos - width / 2, client_profile, color=color, width=.3)
-
-    if len(compare_to_client_profile) != 0:
-        second_prof = ax.bar(y_pos + width / 2, compare_to_client_profile, color=color / 2, width=.3)
-    ax.set_xticks(y_pos, emotion_array)
-    ax.set_ylabel('Проценты')
-    ax.set_title('Эмоции')
-
-    if len(compare_to_client_profile) != 0:
-        ax.bar_label(first_prof, labels=["После", "После", "После", "После"], padding=3)
-        ax.bar_label(second_prof, labels=["До", "До", "До", "До"], padding=3)
-    fig.tight_layout()
-    plt.ylim(top=110)
-    plt.yticks([i * 10 for i in range(0, 11)])
-    plt.get_current_fig_manager().set_window_title(figure_name)
-    plt.show()
-
-
-def make_bar_chart_list(figure_name, client_profiles, profile_labels, emotion_array, emotion_color_rgb):
-    y_pos = np.arange(len(emotion_array))
-    color = np.array(emotion_color_rgb)
-    num_of_profiles = len(client_profiles)
-    for i in range(num_of_profiles):
-        client_profiles[i] = [(x / sum(client_profiles[i])) * 100 for x in client_profiles[i]]
-
-    width = 1 / (num_of_profiles + 1)
-    fig, ax = plt.subplots()
-    list_of_profs = []
-    position = (-width / num_of_profiles) * (num_of_profiles / 2)
-    for i in range(num_of_profiles):
-        list_of_profs.append(
-            ax.bar(y_pos + position + (width / num_of_profiles) * (i + 2 * i), client_profiles[i],
-                   color=color / (i + 1),
-                   width=1 / (num_of_profiles + 1)))
-
-    ax.set_xticks(y_pos, emotion_array)
-    ax.set_ylabel('Проценты')
-    ax.set_title('Эмоции')
-
-    for i in range(num_of_profiles):
-        ax.bar_label(list_of_profs[i], labels=profile_labels[i], padding=3)
-
-    fig.tight_layout()
-    plt.ylim(top=110)
-    plt.get_current_fig_manager().set_window_title(figure_name)
-    plt.show()

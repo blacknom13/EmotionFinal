@@ -14,16 +14,6 @@ HOST = '192.168.0.14'  # "192.168.43.180"
 PORT = 11111
 
 
-def format_result_percent(first_profile, second_profile, index):
-    res = int(second_profile[index] / sum(second_profile) * 100) - int(first_profile[index] / sum(first_profile) * 100)
-    if res > 0:
-        return "+ {}%".format(res)
-    elif res < 0:
-        return "- {}%".format(abs(res))
-    else:
-        return " {}%".format(abs(res))
-
-
 def start_camera():
     return cv.VideoCapture(0), UserInterface.BetterUI(False)
 
@@ -82,6 +72,8 @@ def camera_capture(button_pressed, client_id, camera_ready):
     camera_ready.notify()
     camera_ready.release()
     emotion_model.predict(np.zeros((1, 48, 48, 1)))
+
+    local_ui.configure_figure(emotion_array_eng, emotion_colors)
     while True:
         ret, frame = local_capture.read()
         if not ret:
@@ -104,6 +96,11 @@ def camera_capture(button_pressed, client_id, camera_ready):
 
 
 if __name__ == "__main__":
+    # setting up two threads:
+    # the main one runs the 3 buttons interface for giving tickets
+    # the second runs the recognition operations and sending the data to the server
+
+    # the recognition thread
     button_pressed = multiprocessing.Value('i', 0)
     client_id = multiprocessing.Array('c', b"0000")
     camera_ready = multiprocessing.Condition()
@@ -112,6 +109,7 @@ if __name__ == "__main__":
 
     ###########
 
+    # the main thread
     layout = [
         [sg.Button("Оформить карту", size=20, key="A", metadata=0)],
         [sg.Button("Оплата услуг", size=20, key="B", metadata=0)],

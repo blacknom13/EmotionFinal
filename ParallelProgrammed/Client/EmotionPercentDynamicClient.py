@@ -18,7 +18,7 @@ def detect_emotions(preparation_timer, ui, local_timer, local_client_profile,
     end_minute = current + preparation_timer
     local_total_frames = 0
     recognized_client = ""
-    ui.configure_figure(emotion_array, emotion_colors)
+    #ui.configure_figure(emotion_array, emotion_colors)
     while True:
         # find haar cascade to draw bounding box around face
         ret, frame = capture.read()

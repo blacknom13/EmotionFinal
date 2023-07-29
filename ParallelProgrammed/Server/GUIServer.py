@@ -13,25 +13,11 @@ HOST = '192.168.0.14'  # '192.168.43.180'
 PORT = 11111
 
 
-def format_result_percent(first_profile, second_profile, index):
-    res = int(second_profile[index] / sum(second_profile) * 100) - int(first_profile[index] / sum(first_profile) * 100)
-    if res > 0:
-        return "+ {}%".format(res)
-    elif res < 0:
-        return "- {}%".format(abs(res))
-    else:
-        return " {}%".format(abs(res))
-
-
-def update_faces():
-    return clients_ids, clients_faces
-
-
 def start_camera():
     return cv.VideoCapture(0), UserInterface.BetterUI(True)
 
 
-def camera_capture(ids, emotions, faces):
+def camera_capture(ids, emotions, faces, age):
     local_capture, local_ui = start_camera()
 
     emotion_dict_fullname_eng = {0: 'Angry', 1: "Happy", 2: "Neutral", 3: "Sad"}
@@ -63,8 +49,9 @@ def camera_capture(ids, emotions, faces):
     # load weights into new model
     emotion_model.load_weights('../fer70.h5')
     print("Emotion Detection Model Loaded")
-    ###########
+    #####################################################################
 
+    # initializing default values for emotion detection class
     EmotionPercentDynamicServer.emotion_dict = emotion_dict_fullname_eng
     EmotionPercentDynamicServer.emotion_dict_fullname = emotion_dict_fullname_eng
     EmotionPercentDynamicServer.emotion_colors = emotion_colors
@@ -74,24 +61,32 @@ def camera_capture(ids, emotions, faces):
     EmotionPercentDynamicServer.func = func
     EmotionPercentDynamicServer.emotion_array = emotion_array_eng
 
+    # this line helps loading the model at the start of the program and not when the first face appears
     emotion_model.predict(np.zeros((1, 48, 48, 1)))
+
+    # starting the detection
     EmotionPercentDynamicServer.detect_emotions(ui=local_ui,
                                                 client_ids=ids, face_data=faces,
-                                                starting_emotions=emotions,client_age=client_age)
+                                                starting_emotions=emotions, client_age=age)
 
 
 if __name__ == "__main__":
+    # setting up two threads:
+    # the main one acts like a server and receives the new client info from the service terminal (client program)
+    # the second one runs the TERSS algorithm
 
+    # TRESS thread
     manager = multiprocessing.Manager()
     clients_faces = manager.list()
     clients_ids = manager.list()
     clients_start_emotions = manager.list()
-    client_age=manager.list()
-    TRESS = multiprocessing.Process(target=camera_capture, args=[clients_ids, clients_start_emotions, clients_faces])
+    client_age = manager.list()
+    TRESS = multiprocessing.Process(target=camera_capture,
+                                    args=[clients_ids, clients_start_emotions, clients_faces, client_age])
     TRESS.start()
 
+    # main thread
     sock = Listener((HOST, PORT))
-
     while True:
         conn = sock.accept()
         data = conn.recv()
@@ -99,4 +94,3 @@ if __name__ == "__main__":
         clients_start_emotions.append(data[1])
         clients_faces.append(data[2])
         client_age.append(data[3])
-        # print (clients_faces[:])
