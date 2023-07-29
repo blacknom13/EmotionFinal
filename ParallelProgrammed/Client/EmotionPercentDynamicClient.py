@@ -25,7 +25,7 @@ def detect_emotions(preparation_timer, ui, local_timer, local_client_profile,
         if not ret:
             break
 
-        predicted_age = []
+        predicted_age = [0,0,0,0]
         img = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
         faces = face_detection.process(img)
 
@@ -59,7 +59,8 @@ def detect_emotions(preparation_timer, ui, local_timer, local_client_profile,
                     roi_resized = roi_resized.astype('float') / 255.0
                     cropped_img = np.expand_dims(roi_resized, axis=0)
                     predicted = age_model.predict(cropped_img)[0]
-                    predicted_age = age_labels[predicted.argmax()]
+                    #predicted_age = age_labels[predicted.argmax()]
+                    predicted_age[predicted.argmax()]+=1
 
                 local_client_profile[prediction.argmax()] += 1
                 local_total_frames += 1
@@ -104,13 +105,13 @@ def detect_emotions(preparation_timer, ui, local_timer, local_client_profile,
                                         [anger_percent, happy_percent, neutral_percent, sad_percent],
                                         emotion_colors, intx, inty, intHeight, 20)
 
-        cv.rectangle(frame, (0, 0), (100, 40), (200, 200, 200), 40)
-        cv.putText(frame, "FPS: " + str(FPS), (10, 30), cv.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 0, 255))
+            cv.rectangle(frame, (0, 0), (100, 40), (200, 200, 200), 40)
+            cv.putText(frame, "FPS: " + str(FPS), (10, 30), cv.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 0, 255))
 
-        if len(predicted_age) != 0:
-            cv.putText(frame, predicted_age,
-                       (intx + int(intWidth / 2) - 20, label_position[1] + 10), cv.FONT_HERSHEY_COMPLEX_SMALL, 1,
-                       (0, 0, 255), 1)
+            if len(predicted_age) != 0:
+                cv.putText(frame, age_labels[predicted_age.index(max(predicted_age))],
+                           (intx + int(intWidth / 2) - 20, label_position[1] + 10), cv.FONT_HERSHEY_COMPLEX_SMALL, 1,
+                           (0, 0, 255), 1)
 
         ui.update_camera(frame)
         if cv.waitKey(1) & 0xFF == ord('q') or local_timer <= 0 and once:
@@ -118,4 +119,5 @@ def detect_emotions(preparation_timer, ui, local_timer, local_client_profile,
 
     face_data = fr.return_face_by_name(name).copy()
     fr.delete_face_by_name(name)
-    return face_data
+    print(age_labels[predicted_age.index(max(predicted_age))])
+    return face_data, age_labels[predicted_age.index(max(predicted_age))]

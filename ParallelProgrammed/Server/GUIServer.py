@@ -39,8 +39,6 @@ def camera_capture(ids, emotions, faces):
     emotion_array_eng = ['Angry', 'Happy', 'Neutral', 'Sad']
     emotion_colors = [[0, 0, 175], [0, 200, 0], [75, 75, 75], [175, 0, 0]]
 
-    age_list = ['25-30', '42-48', '6-20', '60-98']
-
     direct_to = ""
 
     # time function definition
@@ -79,7 +77,7 @@ def camera_capture(ids, emotions, faces):
     emotion_model.predict(np.zeros((1, 48, 48, 1)))
     EmotionPercentDynamicServer.detect_emotions(ui=local_ui,
                                                 client_ids=ids, face_data=faces,
-                                                starting_emotions=emotions)
+                                                starting_emotions=emotions,client_age=client_age)
 
 
 if __name__ == "__main__":
@@ -88,6 +86,7 @@ if __name__ == "__main__":
     clients_faces = manager.list()
     clients_ids = manager.list()
     clients_start_emotions = manager.list()
+    client_age=manager.list()
     TRESS = multiprocessing.Process(target=camera_capture, args=[clients_ids, clients_start_emotions, clients_faces])
     TRESS.start()
 
@@ -99,4 +98,5 @@ if __name__ == "__main__":
         clients_ids.append(data[0])
         clients_start_emotions.append(data[1])
         clients_faces.append(data[2])
+        client_age.append(data[3])
         # print (clients_faces[:])

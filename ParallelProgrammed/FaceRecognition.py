@@ -41,4 +41,4 @@ def return_face_by_name(name):
 def delete_face_by_name(name):
     i = faces_names.index(name)
     faces_names.pop(i)
-    stored_faces.pop(i)
+    return stored_faces.pop(i)

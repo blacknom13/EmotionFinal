@@ -10,7 +10,7 @@ import numpy as np
 
 from ParallelProgrammed import UserInterface
 
-HOST = '192.168.0.14' #"192.168.43.180"
+HOST = '192.168.0.14'  # "192.168.43.180"
 PORT = 11111
 
 
@@ -28,9 +28,9 @@ def start_camera():
     return cv.VideoCapture(0), UserInterface.BetterUI(False)
 
 
-def send_data(face_id, client_emotions, data):
-    sock=Client((HOST,PORT))
-    sock.send([face_id,client_emotions,data])
+def send_data(face_id, client_emotions, data, age):
+    sock = Client((HOST, PORT))
+    sock.send([face_id, client_emotions, data, age])
     sock.close()
 
 
@@ -89,17 +89,17 @@ def camera_capture(button_pressed, client_id, camera_ready):
         local_ui.update_camera(frame)
         if button_pressed.value == 1:
             button_pressed.value = 0
-            face_data = EmotionPercentDynamicClient.detect_emotions(init_timer, local_ui, 0,
-                                                                                           client_profile,
-                                                                                           emotion_colors,
-                                                                                           local_capture,
-                                                                                           face_detection,
-                                                                                           emotion_model,
-                                                                                           age_model, age_list,
-                                                                                           client_id.value.decode(),
-                                                                                           emotion_array=emotion_array_eng)
+            face_data, age = EmotionPercentDynamicClient.detect_emotions(init_timer, local_ui, 0,
+                                                                         client_profile,
+                                                                         emotion_colors,
+                                                                         local_capture,
+                                                                         face_detection,
+                                                                         emotion_model,
+                                                                         age_model, age_list,
+                                                                         client_id.value.decode(),
+                                                                         emotion_array=emotion_array_eng)
 
-            send_data(client_id.value.decode(), client_profile, face_data)
+            send_data(client_id.value.decode(), client_profile, face_data, age)
             client_profile = [0, 0, 0, 0]
 
 

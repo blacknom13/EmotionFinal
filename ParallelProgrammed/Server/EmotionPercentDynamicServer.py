@@ -14,7 +14,19 @@ func = None
 name = None
 emotion_array = None
 emotion_colors = None
+age_list = ['25-30', '42-48', '6-20', '60-98']
 DEFAULT_TIMER = 20  # In seconds
+
+
+def send_face_to_specialist(client_id, face_data):
+    pass
+
+
+def client_should_be_directed_by_age(client_age):
+    if age_list.index(client_age) > 2:
+        return True
+    else:
+        return False
 
 
 def update_client_emotions(img, recognized_client, clients_dict):
@@ -35,20 +47,23 @@ def update_client_emotions(img, recognized_client, clients_dict):
     return anger_percent, happy_percent, neutral_percent, sad_percent
 
 
-def add_new_client_to_list(face_data, client_ids, starting_emotions, clients_dict):
-    local_total_frames = count_num_of_frames(starting_emotions)
-
-    FaceRecognition.store_face_name_with_encoding(face_data, client_ids)
-
-    clients_dict[client_ids] = [starting_emotions.copy(), local_total_frames, DEFAULT_TIMER,
-                                time.time_ns()]
+def add_new_client_to_list(face_data, client_ids, starting_emotions, client_age, clients_dict):
+    if client_should_be_directed_by_age(client_age):
+        direct_to(age=True)
+        send_face_to_specialist(client_ids, face_data)
+    else:
+        local_total_frames = count_num_of_frames(starting_emotions)
+        FaceRecognition.store_face_name_with_encoding(face_data, client_ids)
+        clients_dict[client_ids] = [starting_emotions.copy(), local_total_frames, DEFAULT_TIMER,
+                                    time.time_ns()]
     print(clients_dict)
 
 
-def clear_sent_data(face_data, client_ids, starting_emotions):
+def clear_sent_data(face_data, client_ids, starting_emotions, client_age):
     face_data[:] = []
     client_ids[:] = []
     starting_emotions[:] = []
+    client_age[:] = []
 
 
 def new_client_entered(list_of_sent_faces):
@@ -62,13 +77,14 @@ def update_client_state(clients_dict, client_id, anger_percent, sad_percent):
     elif clients_dict[client_id][2] <= 0:
         real_time = time.time_ns() - clients_dict[client_id][3]
         real_time /= 1000000000
-        print(direct_to(real_time))
+        print(direct_to(real_time=real_time))
+        send_face_to_specialist(client_id,FaceRecognition.delete_face_by_name(client_id))
 
 
-def direct_to(real_time):
+def direct_to(real_time=None, age=False):
     if 6 <= real_time < 10:
         destination = "психлогу"
-    else:
+    elif real_time >= 10 or age:
         destination = "старшему сотруднику"
     return destination
 
@@ -77,7 +93,7 @@ def count_num_of_frames(emotion_list):
     return sum(emotion_list)
 
 
-def detect_emotions(ui, client_ids, face_data, starting_emotions):
+def detect_emotions(ui, client_ids, face_data, starting_emotions, client_age):
     current = time.time_ns()
     id_to_info = {}
     fps = 0
@@ -155,8 +171,9 @@ def detect_emotions(ui, client_ids, face_data, starting_emotions):
         fps += 1
 
         if new_client_entered(face_data[:]):
-            add_new_client_to_list(face_data[:][0], client_ids[:][0], starting_emotions[:][0], id_to_info)
-            clear_sent_data(face_data, client_ids, starting_emotions)
+            add_new_client_to_list(face_data[:][0], client_ids[:][0], starting_emotions[:][0], client_age[:][0],
+                                   id_to_info)
+            clear_sent_data(face_data, client_ids, starting_emotions, client_age)
 
         cv.rectangle(frame, (0, 0), (100, 40), (200, 200, 200), 40)
         cv.putText(frame, "FPS: " + str(FPS), (10, 30), cv.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 0, 255))
