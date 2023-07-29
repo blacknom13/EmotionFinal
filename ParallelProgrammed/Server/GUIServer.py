@@ -6,10 +6,10 @@ import mediapipe as mp
 import cv2 as cv
 import multiprocessing
 from multiprocessing.connection import Listener
-import NewGui2
+from ParallelProgrammed import UserInterface
 import numpy as np
 
-HOST = '192.168.0.14' #'192.168.43.180'
+HOST = '192.168.0.14'  # '192.168.43.180'
 PORT = 11111
 
 
@@ -28,16 +28,16 @@ def update_faces():
 
 
 def start_camera():
-    return cv.VideoCapture(0), NewGui2.BetterUI()
+    return cv.VideoCapture(0), UserInterface.BetterUI(True)
 
 
 def camera_capture(ids, emotions, faces):
     local_capture, local_ui = start_camera()
 
     emotion_dict_fullname_eng = {0: 'Angry', 1: "Happy", 2: "Neutral", 3: "Sad"}
-    emotion_array = ['Гнев', "Радость", "Нейтральность", "Грусть"]
-    emotion_color = [[0, 0, 175], [0, 200, 0], [75, 75, 75], [175, 0, 0]]
-    emotion_color_rgb = [[0.684, 0, 0], [0, 0.781, 0], [0.293, 0.293, 0.293], [0, 0, 0.684]]
+    emotion_array_rus = ['Гнев', "Радость", "Нейтральность", "Грусть"]
+    emotion_array_eng = ['Angry', 'Happy', 'Neutral', 'Sad']
+    emotion_colors = [[0, 0, 175], [0, 200, 0], [75, 75, 75], [175, 0, 0]]
 
     age_list = ['25-30', '42-48', '6-20', '60-98']
 
@@ -69,18 +69,17 @@ def camera_capture(ids, emotions, faces):
 
     EmotionPercentDynamicServer.emotion_dict = emotion_dict_fullname_eng
     EmotionPercentDynamicServer.emotion_dict_fullname = emotion_dict_fullname_eng
-    EmotionPercentDynamicServer.emotion_color = emotion_color
+    EmotionPercentDynamicServer.emotion_colors = emotion_colors
     EmotionPercentDynamicServer.capture = local_capture
     EmotionPercentDynamicServer.face_detection = face_detection
     EmotionPercentDynamicServer.emotion_model = emotion_model
     EmotionPercentDynamicServer.func = func
-    EmotionPercentDynamicServer.emotion_array = emotion_array
-    EmotionPercentDynamicServer.emotion_colors = emotion_color_rgb
+    EmotionPercentDynamicServer.emotion_array = emotion_array_eng
 
     emotion_model.predict(np.zeros((1, 48, 48, 1)))
-    direct_to= EmotionPercentDynamicServer.detect_emotions(ui=local_ui,
-                                                                          client_ids=ids, face_data=faces,
-                                                                          starting_emotions=emotions)
+    EmotionPercentDynamicServer.detect_emotions(ui=local_ui,
+                                                client_ids=ids, face_data=faces,
+                                                starting_emotions=emotions)
 
 
 if __name__ == "__main__":
@@ -100,4 +99,4 @@ if __name__ == "__main__":
         clients_ids.append(data[0])
         clients_start_emotions.append(data[1])
         clients_faces.append(data[2])
-        #print (clients_faces[:])
+        # print (clients_faces[:])

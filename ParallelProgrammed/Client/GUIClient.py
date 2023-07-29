@@ -1,12 +1,14 @@
 import multiprocessing
 from multiprocessing.connection import Client
 import EmotionPercentDynamicClient
-import NewGui2
+import ParallelProgrammed.UserInterface
 from keras.models import model_from_json
 import mediapipe as mp
 import cv2 as cv
 import PySimpleGUI as sg
 import numpy as np
+
+from ParallelProgrammed import UserInterface
 
 HOST = '192.168.0.14' #"192.168.43.180"
 PORT = 11111
@@ -23,7 +25,7 @@ def format_result_percent(first_profile, second_profile, index):
 
 
 def start_camera():
-    return cv.VideoCapture(0), NewGui2.BetterUI()
+    return cv.VideoCapture(0), UserInterface.BetterUI(False)
 
 
 def send_data(face_id, client_emotions, data):
@@ -36,10 +38,10 @@ def camera_capture(button_pressed, client_id, camera_ready):
     local_capture, local_ui = start_camera()
 
     emotion_dict_fullname_eng = {0: 'Angry', 1: "Happy", 2: "Neutral", 3: "Sad"}
-    emotion_array = ['Гнев', "Радость", "Нейтральность", "Грусть"]
+    emotion_array_rus = ['Гнев', "Радость", "Нейтральность", "Грусть"]
+    emotion_array_eng = ['Angry', 'Happy', 'Neutral', 'Sad']
     client_profile = [0, 0, 0, 0]
-    emotion_color = [[0, 0, 175], [0, 200, 0], [75, 75, 75], [175, 0, 0]]
-    emotion_color_rgb = [[0.684, 0, 0], [0, 0.781, 0], [0.293, 0.293, 0.293], [0, 0, 0.684]]
+    emotion_colors = [[0, 0, 175], [0, 200, 0], [75, 75, 75], [175, 0, 0]]
 
     age_list = ['25-30', '42-48', '6-20', '60-98']
 
@@ -89,16 +91,13 @@ def camera_capture(button_pressed, client_id, camera_ready):
             button_pressed.value = 0
             face_data = EmotionPercentDynamicClient.detect_emotions(init_timer, local_ui, 0,
                                                                                            client_profile,
-                                                                                           emotion_dict_fullname_eng,
-                                                                                           emotion_dict_fullname_eng,
-                                                                                           emotion_color,
+                                                                                           emotion_colors,
                                                                                            local_capture,
                                                                                            face_detection,
                                                                                            emotion_model,
                                                                                            age_model, age_list,
                                                                                            client_id.value.decode(),
-                                                                                           emotion_array=emotion_array,
-                                                                                           emotion_colors=emotion_color_rgb)
+                                                                                           emotion_array=emotion_array_eng)
 
             send_data(client_id.value.decode(), client_profile, face_data)
             client_profile = [0, 0, 0, 0]

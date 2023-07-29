@@ -5,9 +5,10 @@ import ParallelProgrammed.HelperLibrary as help
 import numpy as np
 import time
 
-def detect_emotions(preparation_timer, ui, local_timer, local_client_profile, emotion_dict, emotion_dict_fullname,
-                    emotion_color, capture, face_detection, emotion_model, age_model=None, age_labels=None, name=None,
-                    emotion_array=None, emotion_colors=None):
+
+def detect_emotions(preparation_timer, ui, local_timer, local_client_profile,
+                    emotion_colors, capture, face_detection, emotion_model, age_model=None, age_labels=None, name=None,
+                    emotion_array=None):
     current = time.time_ns()
     fps = 0
     FPS = 0
@@ -93,37 +94,15 @@ def detect_emotions(preparation_timer, ui, local_timer, local_client_profile, em
                 once = True
                 start_minute = False
 
-            # if once:
-            sub_frame = frame[max(0, inty - 40): max(0, inty + intHeight),
-                        max(0, intx - 150): max(0, intx + intWidth)]
-            white_rect = np.ones(sub_frame.shape, dtype=np.uint8) * 255
-            temp_face = copy.deepcopy(frame[inty:inty + intHeight, intx:intx + intWidth])
-            sub_frame = cv.addWeighted(sub_frame, 0.5, white_rect, 0.5, 1.0)
-            if sub_frame is not None:
-                frame[max(0, inty - 40): max(0, inty + intHeight),
-                max(0, intx - 150): max(0, intx + intWidth)] = sub_frame
-                frame[inty:inty + intHeight, intx:intx + intWidth] = temp_face
-
-            # cv.putText(frame, emotion_dict_fullname[np.argmax(local_client_profile)],
-            #            (intx + int(intWidth / 2) - 50, label_position[1] + 10), cv.FONT_HERSHEY_COMPLEX_SMALL, 1,
-            #            emotion_color[np.argmax(local_client_profile)], 1)
+            help.resize_gray_rect_around_face(frame, intx, inty, intWidth, intHeight)
 
             cv.putText(frame, recognized_client,
                        (intx - 120, inty + intHeight // 4), cv.FONT_HERSHEY_COMPLEX_SMALL, 4,
                        (0, 0, 0), 4)
 
-            # Putting the labels of emotions on the left
-            cv.putText(frame, emotion_dict[0] + ":" + str(anger_percent) + '%',
-                       (intx - 150, inty + int(intHeight / 2)),
-                       cv.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 0, 175), 1)
-            cv.putText(frame, emotion_dict[1] + ":" + str(happy_percent) + '%',
-                       (intx - 150, inty + int(intHeight / 2) + 20), cv.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 200, 0),
-                       1)
-            cv.putText(frame, emotion_dict[2] + ":" + str(neutral_percent) + '%',
-                       (intx - 150, inty + int(intHeight / 2) + 40), cv.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 0, 0), 1)
-            cv.putText(frame, emotion_dict[3] + ":" + str(sad_percent) + '%',
-                       (intx - 150, inty + int(intHeight / 2) + 60), cv.FONT_HERSHEY_COMPLEX_SMALL, 1, (175, 0, 0),
-                       1)
+            help.print_emotion_percents(frame, emotion_array,
+                                        [anger_percent, happy_percent, neutral_percent, sad_percent],
+                                        emotion_colors, intx, inty, intHeight, 20)
 
         cv.rectangle(frame, (0, 0), (100, 40), (200, 200, 200), 40)
         cv.putText(frame, "FPS: " + str(FPS), (10, 30), cv.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 0, 255))
@@ -137,6 +116,6 @@ def detect_emotions(preparation_timer, ui, local_timer, local_client_profile, em
         if cv.waitKey(1) & 0xFF == ord('q') or local_timer <= 0 and once:
             break
 
-    face_data=fr.return_face_by_name(name).copy()
+    face_data = fr.return_face_by_name(name).copy()
     fr.delete_face_by_name(name)
     return face_data
